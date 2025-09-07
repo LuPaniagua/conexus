@@ -21,5 +21,6 @@ class Laudo extends Model
         'detalhes',
         'diagnostico',
         'arquivo_pdf',
+        'usuario_id',
     ];
 }

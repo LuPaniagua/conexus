@@ -103,6 +103,7 @@
     @endif
 
     @foreach($salas as $sala)
+<<<<<<< HEAD
       @php
         $dataHoraSala = \Carbon\Carbon::parse($sala->data . ' ' . $sala->hora)->setTimezone('America/Sao_Paulo');
         $agora = \Carbon\Carbon::now()->setTimezone('America/Sao_Paulo');
@@ -132,6 +133,66 @@
         @endif
       </div>
     @endforeach
+=======
+  @php
+    $dataHoraSala = \Carbon\Carbon::parse($sala->data . ' ' . $sala->hora)->setTimezone('America/Sao_Paulo');
+    $agora = \Carbon\Carbon::now()->setTimezone('America/Sao_Paulo');
+    $minutosFaltando = $agora->diffInMinutes($dataHoraSala, false);
+    $passouMaisDeUmDia = $dataHoraSala->lt($agora->copy()->subDay()); // sala < agora - 1 dia
+  @endphp
+
+  @if($passouMaisDeUmDia)
+    @continue
+  @endif
+
+  <div class="card">
+    <h4>Tema: {{ $sala->tema }}</h4>
+    <p><strong>Doutor:</strong> {{ $sala->nome_medico }}</p>
+    <p><strong>Data:</strong> {{ \Carbon\Carbon::parse($sala->data)->format('d/m/Y') }}</p>
+    <p><strong>Horário:</strong> {{ \Carbon\Carbon::parse($sala->data . ' ' . $sala->hora)->format('H:i') }}</p>
+
+    {{-- Aqui verifica se tem laudo pendente e exibe o status --}}
+    @php
+      $laudo = $sala->laudosPendentes->first(); // já filtrado no controller para este usuário
+    @endphp
+
+    @if($laudo)
+      @switch($laudo->status)
+    @case('pendente')
+        @if($sala->laudo_obrigatorio)
+            <p style="color: orange; font-weight: bold;">⚠️ Laudo está sendo validado</p>
+        @endif
+        @break
+
+    @case('aprovado')
+        <p style="color: green; font-weight: bold;">✅ Laudo aprovado! Você poderá entrar 5 minutos antes.</p>
+        @break
+
+    @case('rejeitado')
+        <p style="color: red; font-weight: bold;">❌ Laudo rejeitado. Envie um novo para participar.</p>
+        @break
+@endswitch
+    @else
+      @if($sala->laudo_obrigatorio)
+        <p style="color: gray;">⚠️ Laudo obrigatório ainda não enviado.</p>
+      @else
+        <p style="color: green;">✅ Laudo não é obrigatório.</p>
+      @endif
+    @endif
+
+    @if($minutosFaltando > 5)
+      <p style="color: #555;">⏳ Você poderá entrar a partir de 5 minutos antes da conversa começar 😊</p>
+    @elseif($minutosFaltando <= 5 && $minutosFaltando >= -60)
+      <form action="#" method="POST">
+        @csrf
+        <button class="btn-success">Entrar</button>
+      </form>
+    @else
+      <p style="color: red;">❌ Esta sala já foi encerrada.</p>
+    @endif
+  </div>
+@endforeach
+>>>>>>> 025c1fb (07/09/2025)
   </div>
 
   <script>

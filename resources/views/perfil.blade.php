@@ -91,8 +91,9 @@
 
         <div class="botoes-container">
             <a class="button" href="{{ route('perfil.edit') }}">Editar Perfil</a>
-            <a class="button" href="{{ route('cadastrolaudo') }}">Cadastrar Laudo</a>
+            <a class="button" href="{{ route('cadastrarlaudo') }}">Cadastrar Laudo</a>
             <a class="button" href="{{ route('home') }}">Ver Laudos</a>
+            <a class="button" href="{{ route('espera-de-salas') }}">Ver Salas Agendadas</a>
             <form method="POST" action="{{ route('logout') }}" style="display: inline;">
                 @csrf
                 <button type="submit" class="button button-danger">Desconectar</button>

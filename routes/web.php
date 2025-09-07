@@ -8,6 +8,7 @@ use App\Http\Controllers\MedicoController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SalaController;
 use App\Http\Controllers\AgendamentoController;
+use App\Http\Controllers\LaudoPendenteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -68,7 +69,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/salas', [SalaController::class, 'store'])->name('salas.store');
 
     // Rotas de Laudos
-    Route::get('/cadastrolaudo', fn() => view('cadastrolaudo'))->name('cadastrolaudo');
+    Route::get('/cadastrolaudo', [LaudoController::class, 'create'])->name('cadastrarlaudo');
     Route::post('/laudo', [LaudoController::class, 'store'])->name('laudo.store');
 });
 
@@ -87,9 +88,16 @@ Route::post('/salas/{id}/agendar', [SalaController::class, 'agendar'])->middlewa
 
 Route::get('/espera-de-salas', [SalaController::class, 'salasAgendadas'])->name('espera-de-salas')->middleware('auth');
 
-Route::get('/laudo', [LaudoController::class, 'create'])->name('cadastrarlaudo');
-Route::post('/laudo', [LaudoController::class, 'store'])->name('laudo.store');
+Route::get('/salas-criadas', [SalaController::class, 'minhasSalas'])->middleware('auth')->name('salas.criadas');
 
-Route::get('/salas-criadas', function () {
-    return view('salas-criadas');
-});
+Route::get('/laudo-pendente/novo', [LaudoPendenteController::class, 'create'])->name('laudo.pendente.create');
+Route::post('/laudo-pendente/enviar', [LaudoPendenteController::class, 'store'])->name('laudo.pendente.store');
+
+Route::get('/laudos-pendentes', [LaudoPendenteController::class, 'index'])->name('laudo.pendente.index');
+
+// Rotas para aprovar/rejeitar (proteja com middleware adequado para médicos)
+Route::post('/laudos-pendentes/{id}/aprovar', [LaudoPendenteController::class, 'approve'])->name('laudo.pendente.approve');
+Route::post('/laudos-pendentes/{id}/rejeitar', [LaudoPendenteController::class, 'reject'])->name('laudo.pendente.reject');
+
+Route::get('/salas/{id}/editar', [SalaController::class, 'edit'])->middleware('auth')->name('salas.edit');
+Route::put('/salas/{id}', [SalaController::class, 'update'])->middleware('auth')->name('salas.update');

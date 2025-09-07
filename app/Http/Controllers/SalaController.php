@@ -94,13 +94,18 @@ class SalaController extends Controller
         ]);
 
         $path = $request->file('laudo')->store('laudos', 'public');
-    } else {
-        $path = null;
+
+        \App\Models\LaudoPendente::create([
+            'user_id' => $user->id,
+            'sala_id' => $sala->id,
+            'status' => 'pendente',
+            'caminho_arquivo' => $path,
+        ]);
+
+        return back()->with('success', 'Laudo enviado para análise. Aguarde aprovação.');
     }
 
-    $user->salas()->attach($sala->id, ['laudo_path' => $path]);
-
-    // Remova esta linha, pois está alterando o limite:
+    $user->salas()->attach($sala->id);
 
     return back()->with('success', 'Conversa agendada com sucesso!');
 }
@@ -110,14 +115,20 @@ class SalaController extends Controller
     $usuario = Auth::user();
 
     // Salas que o usuário agendou
-    $salas = $usuario->salas()->orderBy('data')->orderBy('hora')->get();
+    $salas = $usuario->salas()
+    ->orderBy('data')
+    ->orderBy('hora')
+    ->with('laudoPendente') // Carrega o laudo pendente relacionado, se houver
+    ->get();
 
     return view('espera_de_salas', compact('salas'));
 }
 public function espera()
 {
     // Buscar só as salas agendadas pelo usuário logado
-    $salas = Sala::where('usuario_id', auth()->id())->get();
+    $salas = Sala::where('usuario_id', auth()->id())
+    ->with('laudoPendente') // Carrega o laudo pendente relacionado, se houver
+    ->get();
 
     // Retorna a view com as salas filtradas
     return view('espera_de_salas', compact('salas'));
@@ -139,6 +150,62 @@ private function verificarSeTemLaudo($userId, $salaId)
     }
 
     return false;
+}
+
+public function minhasSalas()
+{
+    $medicoId = auth()->id();
+
+    $salas = Sala::where('usuario_id', $medicoId)
+        ->orderBy('data')
+        ->orderBy('hora')
+        ->get();
+
+    return view('salas-criadas', compact('salas'));
+}
+public function edit($id)
+{
+    $sala = Sala::findOrFail($id);
+
+    // Verifica se o usuário logado é o criador da sala
+    if ($sala->usuario_id !== auth()->id()) {
+        abort(403, 'Você não tem permissão para editar esta sala.');
+    }
+
+    return view('criar-salas', compact('sala'));
+}
+
+public function update(Request $request, $id)
+{
+    $sala = Sala::findOrFail($id);
+
+    // Verifica se o usuário logado é o criador da sala
+    if ($sala->usuario_id !== auth()->id()) {
+        abort(403, 'Você não tem permissão para editar esta sala.');
+    }
+
+    $request->validate([
+        'tema' => 'required',
+        'data' => 'required|date',
+        'hora' => 'required|date_format:H:i',
+        'numero_participantes' => 'required|integer|min:2|max:8',
+        'nome_medico' => 'required',
+        'laudo' => 'required|in:sim,nao',
+    ]);
+
+    $laudoConvertido = $request->laudo === 'sim' ? 1 : 0;
+
+$sala->update([
+    'tema' => $request->tema,
+    'descricao' => $request->descricao,
+    'data' => $request->data,
+    'hora' => $request->hora,
+    'numero_participantes' => $request->numero_participantes,
+    'nome_medico' => $request->nome_medico,
+    'laudo_obrigatorio' => $laudoConvertido,
+]);
+
+    return redirect()->route('salas.criadas')->with('success', 'Sala atualizada com sucesso!');
 }
 
 }

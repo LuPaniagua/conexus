@@ -38,5 +38,19 @@ class Sala extends Model
                 ->withPivot('laudo_path')
                 ->withTimestamps();
 }
+<<<<<<< HEAD
 
+=======
+    // Relação com LaudoPendente
+
+    public function laudoPendente()
+{
+    return $this->hasOne(\App\Models\LaudoPendente::class, 'sala_id')->where('user_id', auth()->id());
+}
+
+public function laudosPendentes()
+{
+    return $this->hasMany(LaudoPendente::class, 'sala_id');
+}
+>>>>>>> 025c1fb (07/09/2025)
 }

@@ -61,6 +61,7 @@
             <span>Data: {{ \Carbon\Carbon::parse($sala->data)->format('d/m/Y') }}</span>
         </div>
             <div class="card-body">
+<<<<<<< HEAD
 @if($sala->laudo_obrigatorio)
     @if($sala->temLaudo)
         <button class="button-available">Enviar Laudo</button>
@@ -69,6 +70,29 @@
         <form method="GET" action="{{ route('laudo.store', $sala->id) }}">
             <button type="submit" class="button-available">Enviar Laudo e Agendar Conversa</button>
         </form>
+=======
+@if ($sala->laudoObrigatorio)
+    @php
+        $jaAgendou = auth()->user()->salas->contains($sala->id);
+    @endphp
+
+    @if ($jaAgendou)
+        {{-- Já enviou o laudo, aguardando validação --}}
+        <button class="button-available" disabled>Validando</button>
+        <p>O médico irá validar o seu laudo. Veja a página <strong>"espera de salas"</strong> para o status.</p>
+    @elseif ($sala->temLaudo)
+        {{-- Pode agendar porque já enviou laudo geral --}}
+        <form method="POST" action="{{ route('salas.agendar', $sala->id) }}" enctype="multipart/form-data">
+            @csrf
+            <div class="upload">
+                <input type="file" name="laudo" accept="application/pdf" required>
+                <button type="submit" class="button-available">Enviar Laudo</button>
+            </div>
+        </form>
+    @else
+        <a href="{{ route('cadastrarlaudo') }}" class="button-available">Registrar laudo</a>
+        <p>Você precisa registrar seu laudo para agendar essa sala.</p>
+>>>>>>> 025c1fb (07/09/2025)
     @endif
 @else
     <form method="POST" action="{{ route('salas.agendar', $sala->id) }}">

@@ -56,4 +56,14 @@ class Usuario extends Authenticatable // <<-- Extende Authenticatable para poder
                 ->withPivot('laudo_path')
                 ->withTimestamps();
 }
+    // Verifica se o usuário tem laudo cadastrado
+public function laudo()
+{
+    return $this->hasOne(Laudo::class, 'usuario_id');
+}
+
+public function temLaudo()
+{
+    return $this->laudo()->exists();
+}
 }
